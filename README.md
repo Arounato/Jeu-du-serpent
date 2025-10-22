@@ -1,7 +1,5 @@
 # Jeu-du-serpent
 
-Note : (🚧Création en cours de développement🚧)
-
 ## Description du projet
 Création d'un jeu du serpent via un cours sur Udemy.
 

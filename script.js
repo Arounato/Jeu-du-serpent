@@ -8,6 +8,8 @@ window.onload = function(){
     var applee;
     var widthInBlocks = canvasWidth/blockSize;
     var heightInBlocks = canvasHeight/blockSize;
+    var score;
+    var timeout;
 
     init();
 
@@ -15,32 +17,74 @@ window.onload = function(){
         var canvas = document.createElement('canvas');
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
-        canvas.style.border = "1px solid";
+        canvas.style.border = "30px solid gray";
+        canvas.style.margin = "50px auto";
+        canvas.style.display = "block";
+        canvas.style.backgroundColor = "#ddd";
         document.body.appendChild(canvas);
         ctx = canvas.getContext('2d');
         snakee = new Snake([[6,4], [5,4], [4,4], [3,4], [2,4]], "right");
         applee = new Apple([10,10]);
+        score = 0;
         refreshCanvas();
     }
 
     function refreshCanvas(){
         snakee.advance();
-
         if(snakee.checkCollision()){
-            // GAME OVER
-        }
-        else{
+            gameOver();
+        }else{
             if(snakee.isEatingApple(applee)){
+                score++;
                 snakee.ateApple = true;
                 do{
                     applee.setNewPosition();
-                }while(applee.isOnSnake(snakee))
+                }while(applee.isOnSnake(snakee));
             }
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            drawScore();
             snakee.draw();
             applee.draw();
-            setTimeout(refreshCanvas, delay);
+            timeout = setTimeout(refreshCanvas, delay);
         }
+    }
+
+    function gameOver(){
+        ctx.save();
+        ctx.font = "bold 70px sans-serif";
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 5;
+        var centreX = canvasWidth / 2;
+        var centreY = canvasHeight / 2;
+        ctx.strokeText("Game Over", centreX, centreY - 180);
+        ctx.fillText("Game Over", centreX, centreY - 180);
+        ctx.font = "bold 30px sans-serif";
+        ctx.strokeText("Appuyez sur la touche Espace pour rejouer", centreX, centreY - 120);
+        ctx.fillText("Appuyez sur la touche Espace pour rejouer", centreX, centreY - 120);
+        ctx.restore();
+    }
+
+    function restart(){
+        snakee = new Snake([[6,4], [5,4], [4,4], [3,4], [2,4]], "right");
+        applee = new Apple([10,10]);
+        score = 0;
+        clearTimeout(timeout);
+        refreshCanvas();
+    }
+
+    function drawScore(){
+        ctx.save();
+        ctx.font = "bold 200px sans-serif";
+        ctx.fillStyle = "gray";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        var centreX = canvasWidth / 2;
+        var centreY = canvasHeight / 2;
+        ctx.fillText(score.toString(), centreX, centreY);
+        ctx.restore();
     }
 
     function drawBlock(ctx, position){
@@ -61,6 +105,7 @@ window.onload = function(){
             }
             ctx.restore();
         };
+
         this.advance = function(){
             var nextPosition = this.body[0].slice();
             switch(this.direction){
@@ -85,6 +130,7 @@ window.onload = function(){
             else
                 this.ateApple = false;
         };
+
         this.setDirection = function(newDirection){
             var allowedDirections;
             switch(this.direction){
@@ -103,6 +149,7 @@ window.onload = function(){
                 this.direction = newDirection;
             }
         };
+
         this.checkCollision = function(){
             var wallCollision = false;
             var snakeCollision = false;
@@ -127,6 +174,7 @@ window.onload = function(){
             }
             return wallCollision || snakeCollision;
         };
+
         this.isEatingApple = function(appleToEat){
             var head = this.body[0];
             if(head[0] === appleToEat.position[0] && head[1] === appleToEat.position[1]){
@@ -139,6 +187,24 @@ window.onload = function(){
 
     function Apple(position){
         this.position = position;
+
+        this.setNewPosition = function(){
+            var newX = Math.round(Math.random() * (widthInBlocks - 1));
+            var newY = Math.round(Math.random() * (heightInBlocks - 1));
+            this.position = [newX, newY];
+        };
+
+        this.isOnSnake = function(snakeToCheck){
+            var isOnSnake = false;
+
+            for(var i = 0; i < snakeToCheck.body.length; i++){
+                if(this.position[0] === snakeToCheck.body[i][0] && this.position[1] === snakeToCheck.body[i][1]){
+                    isOnSnake = true;
+                }
+            }
+            return isOnSnake; 
+        };
+
         this.draw = function(){
             ctx.save();
             ctx.fillStyle = "#33cc33";
@@ -149,21 +215,6 @@ window.onload = function(){
             ctx.arc(x,y, radius, 0, Math.PI*2, true);
             ctx.fill();
             ctx.restore();
-        };
-        this.setNewPosition = function(){
-            var newX = Math.round(Math.random() * (widthInBlocks - 1));
-            var newY = Math.round(Math.random() * (heightInBlocks - 1));
-            this.position = [newX, newY];
-        };
-        this.isOnSnake = function(snakeToCheck){
-            var isOnSnake = false;
-
-            for(var i = 0; i < snakeToCheck.body.length; i++){
-                if(this.position[0] === snakeToCheck.body[i][0] && this.position[1] === snakeToCheck.body[i][1]){
-                    isOnSnake = true;
-                }
-            }
-            return isOnSnake; 
         };
     }
 
@@ -183,9 +234,12 @@ window.onload = function(){
             case 40:
                 newDirection = "down";
                 break;
+            case 32:
+                restart();
+                return;
             default:
                 return;
         }
         snakee.setDirection(newDirection);
-    }
+    };
 }
