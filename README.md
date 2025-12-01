@@ -12,3 +12,6 @@ Formateur : John Taieb
 ## Langage utilisé 
 - JS
 - HTML
+
+## Outil utilisé
+- Visual Studio Code
